@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<config>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <etep translate="title" module="etep">
+                                        <title>E-Transactions Presentation</title>
+                                    </etep>
+                                    <etep_merchant translate="title" module="etep">
+                                        <title>E-Transactions Merchant Account</title>
+                                    </etep_merchant>
+                                    <etep_payments translate="title" module="etep">
+                                        <title>E-Transactions Payments</title>
+                                    </etep_payments><!-- 
+                                    <etep_kwixo translate="title" module="etep">
+                                        <title>E-Transactions Kwixo</title>
+                                    </etep_kwixo> -->
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

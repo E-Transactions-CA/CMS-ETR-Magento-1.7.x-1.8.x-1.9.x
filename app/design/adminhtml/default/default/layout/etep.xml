@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<layout>
+    <etep_pres>
+        <reference name="content">
+            <block type="etep/admin_presentation" name="etep_presentation"
+                after="content.child2"></block>
+        </reference>
+    </etep_pres>
+</layout>

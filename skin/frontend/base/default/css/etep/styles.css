@@ -1,0 +1,5 @@
+.etep-payment-cards{text-align:center;}
+.etep-payment-card{display:inline-block;margin:0 30px;padding:3px;text-align:center}
+.etep-payment-card label{display:block;float:none;}
+.etep-payment-label{float:right;}
+.etep-payment-logo{height:20px;}

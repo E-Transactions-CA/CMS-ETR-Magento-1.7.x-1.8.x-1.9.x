@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+        <ETransactions_Epayment>
+            <active>true</active>
+            <codePool>community</codePool>
+        </ETransactions_Epayment>
+    </modules>
+</config>

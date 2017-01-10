@@ -1,0 +1,10 @@
+app/code/community/ETransactions/Epayment
+app/design/adminhtml/default/default/layout/etep.xml
+app/design/adminhtml/default/default/template/etep/
+app/design/frontend/base/default/layout/etep.xml
+app/design/frontend/base/default/template/etep/
+app/etc/modules/ETransactions_Epayment.xml
+app/locale/fr_FR/ETransactions_Epayment.csv
+skin/adminhtml/default/default/images/etransactions/
+skin/frontend/base/default/css/etep/
+skin/frontend/base/default/images/etep/
