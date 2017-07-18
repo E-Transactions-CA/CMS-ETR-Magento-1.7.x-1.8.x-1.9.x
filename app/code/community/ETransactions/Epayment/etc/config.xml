@@ -2,7 +2,7 @@
 <config>
     <modules>
         <ETransactions_Epayment>
-            <version>3.0.1</version>
+            <version>3.0.4</version>
         </ETransactions_Epayment>
     </modules>
     <frontend>
@@ -523,6 +523,45 @@
                     </CREDIT>
                 </cards>
             </etep_kwixo_credit>
+            <etep_masterpass>
+                <active>0</active>
+                <model>etep/payment_masterpass</model>
+                <title>Paiement par Masterpass</title>
+                <allowspecific>0</allowspecific>
+                <action>immediate</action>
+                <status>
+                    <authorized>etep_authorized</authorized>
+                    <paid>etep_paid</paid>
+                </status>
+                <cards>
+                    <MASTERPASS>
+                        <label>Masterpass</label>
+                        <image>images/etep/masterpass.45.png</image>
+                        <payment>WALLET</payment>
+                        <card>MASTERPASS</card>
+                    </MASTERPASS>
+                </cards>
+            </etep_masterpass>
+            <etep_illicado>
+                <active>0</active>
+                <model>etep/payment_illicado</model>
+                <title>Paiement par Illicado</title>
+                <allowspecific>0</allowspecific>
+                <action>immediate</action>
+                <status>
+                    <authorized>etep_authorized</authorized>
+                    <paid>etep_paid</paid>
+                </status>
+                <cards>
+                    <ILLICADO>
+                        <label>Illicado</label>
+                        <image>images/etep/illicado.45.png</image>
+                        <payment>PREPAYEE</payment>
+                        <card>ILLICADO</card>
+                    </ILLICADO>
+                </cards>
+            </etep_illicado>
+            
         </payment>
     </default>
 </config>

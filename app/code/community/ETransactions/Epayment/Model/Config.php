@@ -42,7 +42,25 @@ class ETransactions_Epayment_Model_Config {
                 'https://tpeweb1.e-transactions.fr/cgi/MYchoix_pagepaiement.cgi',
             ),
         ),
+        'responsive' => array(
+            'test' => array(
+                'https://preprod-tpeweb.paybox.com/cgi/FramepagepaiementRWD.cgi'
+            ),
+            'production' => array(
+                'https://tpeweb.paybox.com/cgi/FramepagepaiementRWD.cgi',
+                'https://tpeweb1.paybox.com/cgi/FramepagepaiementRWD.cgi',
+            ),
+        ),
         'kwixo' => array(
+            'test' => array(
+                'https://preprod-tpeweb.e-transactions.fr/php/'
+            ),
+            'production' => array(
+                'https://tpeweb.e-transactions.fr/php/',
+                'https://tpeweb1.e-transactions.fr/php/',
+            ),
+        ),
+        'ancv' => array(
             'test' => array(
                 'https://preprod-tpeweb.e-transactions.fr/php/'
             ),
@@ -68,7 +86,16 @@ class ETransactions_Epayment_Model_Config {
                 'https://ppps.e-transactions.fr/PPPS.php',
                 'https://ppps1.e-transactions.fr/PPPS.php',
             ),
-        )
+        ),
+        'resabo' => array(
+            'test' => array(
+                'https://preprod-tpeweb.e-transactions.fr/cgi-bin/ResAbon.cgi'
+            ),
+            'production' => array(
+                'https://tpeweb.e-transactions.fr/cgi-bin/ResAbon.cgi',
+                'https://tpeweb1.e-transactions.fr/cgi-bin/ResAbon.cgi',
+            ),
+        ),
     );
 
     public function __call($name, $args) {
@@ -146,8 +173,16 @@ class ETransactions_Epayment_Model_Config {
         return $this->_getUrls('system', $environment);
     }
 
+    public function getResponsiveUrls($environment = null) {
+        return $this->_getUrls('responsive', $environment);
+    }
+
     public function getKwixoUrls($environment = null) {
         return $this->_getUrls('kwixo', $environment);
+    }
+
+    public function getAncvUrls($environment = null) {
+        return $this->_getUrls('ancv', $environment);
     }
 
     public function getMobileUrls($environment = null) {
@@ -192,6 +227,18 @@ class ETransactions_Epayment_Model_Config {
             $value = 1;
         }
         return (int) $value;
+    }
+
+    public function getResponsiveConfig() {
+        $value = $this->_getConfigValue('etep/info/responsive');
+        if (is_null($value)) {
+            $value = 0;
+        }
+        return (int) $value;
+    }
+    
+    public function getResAboUrls($environment = null) {
+        return $this->_getUrls('resabo', $environment);
     }
 
     public function getShowInfoToCustomer() {

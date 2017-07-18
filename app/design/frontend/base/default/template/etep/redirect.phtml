@@ -16,11 +16,18 @@ try {
 	if ($values['PBX_TYPEPAIEMENT'] == 'KWIXO') {
     	$url = $helper->escapeUrl($this->getKwixoUrl());
     }
+    else if ($values['PBX_TYPEPAIEMENT'] == 'LIMONETIK') {
+    	$url = $helper->escapeUrl($this->getAncvUrl());
+    }
     else if (Mage::helper('etep/mobile')->isMobile()) {
     	$url = $helper->escapeUrl($this->getMobileUrl());
     }
     else {
-    	$url = $helper->escapeUrl($this->getSystemUrl());
+    	if($values['PBX_SOURCE'] == 'RWD'){
+    		$url = $this->escapeUrl($this->getResponsiveUrl());
+    	}else{
+    		$url = $this->escapeUrl($this->getSystemUrl());
+    	}
     }
    	$type = $helper->escapeUrl($this->getInputType());
 }

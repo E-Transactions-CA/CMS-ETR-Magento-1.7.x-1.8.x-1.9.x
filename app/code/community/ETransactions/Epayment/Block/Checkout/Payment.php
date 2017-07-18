@@ -39,6 +39,9 @@ class ETransactions_Epayment_Block_Checkout_Payment extends Mage_Payment_Block_F
 	public function getMethodLabelAfterHtml() {
 		$cards = $this->getCreditCards();
 		$html = array();
+
+		$path = 'payment/'.$this->getMethod()->getCode().'/cards';
+		$cards = Mage::getStoreConfig($path, $this->getMethod()->getStore());
 		foreach ($cards as $card) {
 			$url = $this->htmlEscape($this->getSkinUrl($card['image']));
 			$alt = $this->htmlEscape($card['label']);

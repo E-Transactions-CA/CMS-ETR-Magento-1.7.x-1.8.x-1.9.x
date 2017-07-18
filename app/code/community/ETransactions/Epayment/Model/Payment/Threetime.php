@@ -35,13 +35,14 @@ class ETransactions_Epayment_Model_Payment_Threetime extends ETransactions_Epaym
 
         $payment = $order->getPayment();
 
-        // Message
-
         // Create transaction
-        $type = Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE;
-        $txn = $this->_addEtransactionsTransaction($order, $type, $data, true, array(
-            self::CALL_NUMBER => $data['call'],
-            self::TRANSACTION_NUMBER => $data['transaction'],
+        $withCapture = $this->getConfigPaymentAction() != Mage_Payment_Model_Method_Abstract::ACTION_AUTHORIZE;
+        $type = $withCapture ?
+                Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE :
+                Mage_Sales_Model_Order_Payment_Transaction::TYPE_AUTH;
+        $txn = $this->_addEtransactionsTransaction($order, $type, $data, false, array(
+            ETransactions_Epayment_Model_Payment_Abstract::CALL_NUMBER => $data['call'],
+            ETransactions_Epayment_Model_Payment_Abstract::TRANSACTION_NUMBER => $data['transaction'],
         ));
         if (is_null($payment->getEtepFirstPayment())) {
             $this->logDebug(sprintf('Order %s: First payment', $order->getIncrementId()));
@@ -73,6 +74,15 @@ class ETransactions_Epayment_Model_Payment_Threetime extends ETransactions_Epaym
 
             // Create invoice is needed
             $invoice = $this->_createInvoice($order, $txn);
+            // Set status
+            if (in_array($current, $allowedStates)) {
+                $order->setState($state, $status, $message);
+                $this->logDebug(sprintf('Order %s: Change status to %s', $order->getIncrementId(), $status));
+            } else {
+                $order->addStatusHistoryComment($message);
+            }
+            $order->save();
+        
         } else if (is_null($payment->getEtepSecondPayment())) {
             // Message
             $message = 'Second payment was captured by E-Transactions.';
@@ -81,6 +91,8 @@ class ETransactions_Epayment_Model_Payment_Threetime extends ETransactions_Epaym
             // Additional informations
             $payment->setEtepSecondPayment(serialize($data));
             $this->logDebug(sprintf('Order %s: %s', $order->getIncrementId(), $message));
+            $transaction = $this->_addEtransactionsDirectTransaction($order, Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, $data, true, array(), $txn);
+            $transaction->save();
         } else if (is_null($payment->getEtepThirdPayment())) {
             // Message
             $message = 'Third payment was captured by E-Transactions.';
@@ -89,12 +101,18 @@ class ETransactions_Epayment_Model_Payment_Threetime extends ETransactions_Epaym
             // Additional informations
             $payment->setEtepThirdPayment(serialize($data));
             $this->logDebug(sprintf('Order %s: %s', $order->getIncrementId(), $message));
+            
+            $transaction = $this->_addEtransactionsDirectTransaction($order, Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, $data, true, array(), $txn);
+            $transaction->save();
+            $txn->closeCapture();
+        
         } else {
             $this->logDebug(sprintf('Order %s: Invalid three-time payment status', $order->getIncrementId()));
             Mage::throwException('Invalid three-time payment status');
         }
         $data['status'] = $message;
 
+        
         // Associate data to payment
         $payment->setEtepAction('three-time');
 
@@ -107,5 +125,59 @@ class ETransactions_Epayment_Model_Payment_Threetime extends ETransactions_Epaym
 
         // Client notification if needed
         $order->sendNewOrderEmail();
+    }
+    
+    public function refund(Varien_Object $payment, $amount) {
+        echo 'threetime refund';
+        die();
+        $order = $payment->getOrder();
+
+        // Find capture transaction
+        $collection = Mage::getModel('sales/order_payment_transaction')->getCollection()
+                ->setOrderFilter($order)
+                ->addPaymentIdFilter($payment->getId())
+                ->addTxnTypeFilter(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE);
+        if ($collection->getSize() == 0) {
+            // If none, error
+            Mage::throwException('No payment or capture transaction. Unable to refund.');
+        }
+
+        // Transaction found
+        $txn = $collection->getFirstItem();
+
+        // Transaction not captured
+        if (!$txn->getIsClosed()) {
+            Mage::throwException('Payment was not fully captured. Unable to refund.');
+        }
+
+        // Call E-Transactions Direct
+        $connector = $this->getEtransactions();
+        $data = $connector->directRefund((float) $amount, $order, $txn);
+
+        // Message
+        if ($data['CODEREPONSE'] == '00000') {
+            $message = 'Payment was refund by E-Transactions.';
+        } else {
+            $message = 'E-Transactions direct error (' . $data['CODEREPONSE'] . ': ' . $data['COMMENTAIRE'] . ')';
+        }
+        $data['status'] = $message;
+        $this->logDebug(sprintf('Order %s: %s', $order->getIncrementId(), $message));
+
+        // Transaction
+        $transaction = $this->_addEtransactionsDirectTransaction($order, Mage_Sales_Model_Order_Payment_Transaction::TYPE_REFUND, $data, true, array(), $txn);
+        $transaction->save();
+
+        // Avoid automatic transaction creation
+        $payment->setSkipTransactionCreation(true);
+
+        // If E-Transactions returned an error, throw an exception
+        if ($data['CODEREPONSE'] != '00000') {
+            Mage::throwException($message);
+        }
+
+        // Add message to history
+        $order->addStatusHistoryComment($this->__($message));
+
+        return $this;
     }
 }

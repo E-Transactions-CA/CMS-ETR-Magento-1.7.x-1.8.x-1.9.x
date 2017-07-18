@@ -31,4 +31,20 @@ class ETransactions_Epayment_Adminhtml_EtepController extends Mage_Adminhtml_Con
 
         $this->_redirect('*/sales_order/view', array('order_id' => $orderId));
     }
+    
+    public function recurringAction() {
+        $orderId = $this->getRequest()->getParam('order_id');
+        $order = Mage::getModel('sales/order')->load($orderId);
+
+        $payment = $order->getPayment();
+        $method = $payment->getMethodInstance();
+
+        $result = $method->deleteRecurringPayment($order);
+
+        if (!$result) {
+            Mage::getSingleton('adminhtml/session')->setCommentText($this->__('Unable to cancel recurring payment.'));
+        }
+
+        $this->_redirect('*/sales_order/view', array('order_id' => $orderId));
+    }
 }

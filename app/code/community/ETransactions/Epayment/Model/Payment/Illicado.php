@@ -10,7 +10,7 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class ETransactions_Epayment_Model_Payment_Paylib extends ETransactions_Epayment_Model_Payment_Abstract {
-	protected $_code = 'etep_paylib';
-    protected $_allowManualDebit = true;
+class ETransactions_Epayment_Model_Payment_Illicado extends ETransactions_Epayment_Model_Payment_Abstract {
+	protected $_code = 'etep_illicado';
+    protected $_allowRefund = false;
 }

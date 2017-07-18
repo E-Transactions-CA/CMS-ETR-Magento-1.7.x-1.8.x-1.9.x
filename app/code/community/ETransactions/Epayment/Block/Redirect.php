@@ -35,6 +35,12 @@ class ETransactions_Epayment_Block_Redirect extends Mage_Page_Block_Html {
         return $etransactions->checkUrls($urls);
     }
 
+    public function getAncvUrl() {
+        $etransactions = Mage::getSingleton('etep/etransactions');
+        $urls = $etransactions->getConfig()->getAncvUrls();
+        return $etransactions->checkUrls($urls);
+    }
+
     public function getMobileUrl() {
         $etransactions = Mage::getSingleton('etep/etransactions');
         $urls = $etransactions->getConfig()->getMobileUrls();
@@ -44,6 +50,12 @@ class ETransactions_Epayment_Block_Redirect extends Mage_Page_Block_Html {
     public function getSystemUrl() {
         $etransactions = Mage::getSingleton('etep/etransactions');
         $urls = $etransactions->getConfig()->getSystemUrls();
+        return $etransactions->checkUrls($urls);
+    }
+
+    public function getResponsiveUrl() {
+        $etransactions = Mage::getSingleton('etep/etransactions');
+        $urls = $etransactions->getConfig()->getResponsiveUrls();
         return $etransactions->checkUrls($urls);
     }
 

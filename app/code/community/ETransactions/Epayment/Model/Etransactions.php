@@ -1,4 +1,5 @@
 <?php
+
 /**
  * E-Transactions Epayment module for Magento
  *
@@ -9,8 +10,8 @@
  * @copyright  Copyright (c) 2013-2014 E-Transactions
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-
 class ETransactions_Epayment_Model_Etransactions {
+
     private $_currencyDecimals = array(
         '008' => 2,
         '012' => 2,
@@ -182,8 +183,7 @@ class ETransactions_Epayment_Model_Etransactions {
         '990' => 0,
         '997' => 2,
         '998' => 2,
-    );
-
+        );
     private $_errorCode = array(
         '00000' => 'Successful operation',
         '00001' => 'Payment system not available',
@@ -201,8 +201,7 @@ class ETransactions_Epayment_Model_Etransactions {
         '00030' => 'Timeout',
         '00033' => 'Unauthorized IP country',
         '00040' => 'No 3-D Secure',
-    );
-
+        );
     private $_resultMapping = array(
         'M' => 'amount',
         'R' => 'reference',
@@ -228,7 +227,7 @@ class ETransactions_Epayment_Model_Etransactions {
         'W' => 'date',
         'Y' => 'country',
         'Z' => 'paymentIndex',
-    );
+        );
 
     protected function _buildUrl($url) {
         $url = Mage::getUrl($url, array('_secure' => true));
@@ -249,7 +248,7 @@ class ETransactions_Epayment_Model_Etransactions {
 
         $version = '00103';
         $password = $config->getPassword();
-        if($config->getSubscription() == 'premium'){
+        if ($config->getSubscription() == 'premium') {
             $version = '00104';
             $password = $config->getPasswordplus();
         }
@@ -269,16 +268,16 @@ class ETransactions_Epayment_Model_Etransactions {
             'RANG' => sprintf('%02d', $config->getRank()),
             'REFERENCE' => $this->tokenizeOrder($order),
             'SITE' => sprintf('%07d', $config->getSite()),
-            'TYPE' => sprintf('%05d', (int)$type),
-        );
+            'TYPE' => sprintf('%05d', (int) $type),
+            );
 
         // Specific Paypal
         $details = $transaction->getAdditionalInformation(Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS);
         if (!empty($details['cardType'])) {
             switch ($details['cardType']) {
                 case 'PAYPAL':
-                    $fields['ACQUEREUR'] = 'PAYPAL';
-                    break;
+                $fields['ACQUEREUR'] = 'PAYPAL';
+                break;
             }
         }
 
@@ -290,7 +289,7 @@ class ETransactions_Epayment_Model_Etransactions {
             'maxredirects' => 0,
             'useragent' => 'Magento E-Transactions module',
             'timeout' => 5,
-        ));
+            ));
         $clt->setMethod(Varien_Http_Client::POST);
         $clt->setRawData(http_build_query($fields));
 
@@ -318,9 +317,9 @@ class ETransactions_Epayment_Model_Etransactions {
             'PBX_EFFECTUE' => $this->_buildUrl($baseUrl . '/success'),
             'PBX_REFUSE' => $this->_buildUrl($baseUrl . '/failed'),
             'PBX_REPONDRE_A' => $this->_buildUrl($baseUrl . '/ipn'),
-        );
+            );
 
-        $values['PBX_VERSION'] = 'Magento_'.Mage::getVersion().'-ETransactions_'.Mage::helper('etep')->getExtensionVersion();
+        $values['PBX_VERSION'] = 'Magento_' . Mage::getVersion() . '-ETransactions_' . Mage::helper('etep')->getExtensionVersion();
 
         // Merchant information
         $values['PBX_SITE'] = $config->getSite();
@@ -346,7 +345,6 @@ class ETransactions_Epayment_Model_Etransactions {
         //     $kwixo = Mage::getSingleton('etep/kwixo');
         //     $values = $kwixo->buildKwixoParams($order, $values);
         // }
-
         // Order information
         $values['PBX_PORTEUR'] = $this->getBillingEmail($order);
         $values['PBX_DEVISE'] = $this->getCurrency($order);
@@ -356,12 +354,12 @@ class ETransactions_Epayment_Model_Etransactions {
         $orderAmount = $order->getBaseGrandTotal();
         // Amount
         $currencies = Mage::app()->getStore()->getAvailableCurrencyCodes();
-        if(count($currencies) > 1 && $this->getConfig()->getCurrencyConfig() == 0){
+        if (count($currencies) > 1 && $this->getConfig()->getCurrencyConfig() == 0) {
             $orderAmount = $order->getGrandTotal();
-        }else{
+        } else {
             $orderAmount = $order->getBaseGrandTotal();
         }
-        
+
         $amountScale = $this->_currencyDecimals[$values['PBX_DEVISE']];
         $amountScale = pow(10, $amountScale);
 
@@ -370,23 +368,22 @@ class ETransactions_Epayment_Model_Etransactions {
             foreach ($amounts as $k => $v) {
                 $values[$k] = $v;
             }
-        }
-        else {
+        } else {
             $values['PBX_TOTAL'] = sprintf('%03d', round($orderAmount * $amountScale));
             switch ($payment->getEtransactionsAction()) {
                 case ETransactions_Epayment_Model_Payment_Abstract::ETRANSACTION_MANUAL:
-                    $values['PBX_AUTOSEULE'] = 'O';
-                    break;
+                $values['PBX_AUTOSEULE'] = 'O';
+                break;
 
                 case ETransactions_Epayment_Model_Payment_Abstract::ETRANSACTION_DEFERRED:
-                    $delay = (int) $payment->getConfigData('delay');
-                    if ($delay < 1) {
-                        $delay = 1;
-                    } else if ($delay > 7) {
-                        $delay = 7;
-                    }
-                    $values['PBX_DIFF'] = sprintf('%02d', $delay);
-                    break;
+                $delay = (int) $payment->getConfigData('delay');
+                if ($delay < 1) {
+                    $delay = 1;
+                } else if ($delay > 7) {
+                    $delay = 7;
+                }
+                $values['PBX_DIFF'] = sprintf('%02d', $delay);
+                break;
             }
         }
 
@@ -411,10 +408,47 @@ class ETransactions_Epayment_Model_Etransactions {
         $lang = $languages[$lang];
         $values['PBX_LANGUE'] = $lang;
 
+        $values['PBX_SOURCE'] = '';
         // Choose page format depending on browser/devise
         if (Mage::helper('etep/mobile')->isMobile()) {
             $values['PBX_SOURCE'] = 'XHTML';
         }
+
+ /*       if($config->getResponsiveConfig() == 1){
+            $values['PBX_SOURCE'] = 'RWD';
+        }
+*/
+        //Paypal Specicif 
+        if ($payment->getCode() == 'etep_paypal') {
+            $separator = '#';
+            $address = $order->getBillingAddress();
+            $customer = Mage::getModel('customer/customer')->load($order->getCustomerId());
+            $data_Paypal = $this->cleanForPaypalData($this->getBillingName($order), 32);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getStreet(1),100);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getStreet(2),100);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getCity(),40);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getRegion(),40);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getPostcode(),20);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getCountry(),2);
+            $data_Paypal .= $separator;
+            $data_Paypal .= $this->cleanForPaypalData($address->getTelephone(),20);
+            $data_Paypal .= $separator;
+            $items = $order->getAllVisibleItems();
+            $products = array();
+            foreach ($items as $item) {
+                $products[] = $item->getName();
+            }
+            $data_Paypal .= $this->cleanForPaypalData(implode('-', $products),127);
+
+            $values['PBX_PAYPAL_DATA'] = $data_Paypal;
+        }
+
 
         // Misc.
         $values['PBX_TIME'] = date('c');
@@ -422,20 +456,19 @@ class ETransactions_Epayment_Model_Etransactions {
 
         // Card specific workaround
         if (($card['payment'] == 'LEETCHI') && ($card['card'] == 'LEETCHI')) {
-            $values['PBX_EFFECTUE'] .= '?R='.urlencode($values['PBX_CMD']);
-            $values['PBX_REFUSE'] .= '?R='.urlencode($values['PBX_CMD']);
-        }
-        else if (($card['payment'] == 'PREPAYEE') && ($card['card'] == 'IDEAL')) {
-            $s =  '?C=IDEAL&P=PREPAYEE';
+            $values['PBX_EFFECTUE'] .= '?R=' . urlencode($values['PBX_CMD']);
+            $values['PBX_REFUSE'] .= '?R=' . urlencode($values['PBX_CMD']);
+        } else if (($card['payment'] == 'PREPAYEE') && ($card['card'] == 'IDEAL')) {
+            $s = '?C=IDEAL&P=PREPAYEE';
             $values['PBX_ANNULE'] .= $s;
             $values['PBX_EFFECTUE'] .= $s;
             $values['PBX_REFUSE'] .= $s;
             $values['PBX_REPONDRE_A'] .= $s;
         }
-        
+
         //PBX Version
         $values['PBX_VERSION'] = 'Magento_' . Mage::getVersion() . '-' . 'etransactions' . '_' . Mage::getConfig()->getModuleConfig("ETransactions_Epayment")->version;
-        
+
         // Sort parameters for simpler debug
         ksort($values);
 
@@ -447,13 +480,21 @@ class ETransactions_Epayment_Model_Etransactions {
         return $values;
     }
 
+    public function cleanForPaypalData($string, $nbCaracter = 0){
+        $string = trim(preg_replace("/[^-+. a-zA-Z0-9]/", " ", Mage::helper('core')->removeAccents($string)));
+        if($nbCaracter > 0){
+            $string = substr($string, 0, $nbCaracter);
+        }
+        return $string;
+    }
+
     public function checkUrls(array $urls) {
         // Init client
         $client = new Varien_Http_Client(null, array(
             'maxredirects' => 0,
             'useragent' => 'Magento E-Transactions module',
             'timeout' => 5,
-        ));
+            ));
         $client->setMethod(Varien_Http_Client::GET);
 
         $error = null;
@@ -466,8 +507,7 @@ class ETransactions_Epayment_Model_Etransactions {
                 if ($response->isSuccessful()) {
                     return $url;
                 }
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 $error = $e;
             }
         }
@@ -500,7 +540,7 @@ class ETransactions_Epayment_Model_Etransactions {
 
     public function convertParams(array $params) {
         $result = array();
-        foreach ($this->_resultMapping  as $param => $key) {
+        foreach ($this->_resultMapping as $param => $key) {
             if (isset($params[$param])) {
                 $result[$key] = utf8_encode($params[$param]);
             }
@@ -522,17 +562,93 @@ class ETransactions_Epayment_Model_Etransactions {
         return $this->_callDirect(2, $amount, $order, $transaction);
     }
 
-    public function directRefund($amount, Mage_Sales_Model_Order $order, Mage_Sales_Model_Order_Payment_Transaction $transaction) {
-        return $this->_callDirect(14, $amount, $order, $transaction);
+    public function directRecurringDelete(Mage_Sales_Model_Order $order) {
+        $config = $this->getConfig();
+        $urls = $config->getResAboUrls();
+        $url = $this->checkUrls($urls);
+
+        // Call parameters
+        $fields = array(
+            'IDENTIFIANT' => $config->getIdentifier(),
+            'MACH' => sprintf('%03d', $config->getRank()),
+            'REFERENCE' => $order->getIncrementId() . ' - ' . $this->getBillingName($order),
+            'SITE' => $config->getSite(),
+            'TYPE' => '001',
+            'VERSION' => '001',
+            );
+
+        // Init client
+        $clt = new Varien_Http_Client($url, array(
+            'maxredirects' => 0,
+            'useragent' => 'Magento E-Transactions module',
+            'timeout' => 5,
+            ));
+        $clt->setMethod(Varien_Http_Client::POST);
+        $clt->setRawData(http_build_query($fields));
+
+        // Do call
+        $response = $clt->request();
+        if ($response->isSuccessful()) {
+            // Process result
+            if (strtolower($response->getHeader('transfer-encoding')) == 'chunked') {
+                $body = $this->decodeChunkedBody($response->getRawBody());
+            }else{
+                $body = $response->getBody();
+            }
+            $result = array();
+            parse_str($body, $result);
+            return $result;
+        }
+
+        // Here, there's a problem
+        Mage::throwException(Mage::helper('etep')->__('E-Transactions not available. Please try again later.'));
     }
 
-    public function getBillingEmail(Mage_Sales_Model_Order $order) {
-        return $order->getCustomerEmail();
+    public function decodeChunkedBody($body) {
+        $decBody = '';
+
+        // If mbstring overloads substr and strlen functions, we have to
+        // override it's internal encoding
+        if (function_exists('mb_internal_encoding') &&
+            ((int) ini_get('mbstring.func_overload')) & 2) {
+
+            $mbIntEnc = mb_internal_encoding();
+        mb_internal_encoding('ASCII');
     }
 
-    public function getBillingName(Mage_Sales_Model_Order $order) {
-        return trim(preg_replace("/[^-. a-zA-Z0-9]/", " ", Mage::helper('core')->removeAccents($order->getCustomerName())));
+    while (trim($body)) {
+        if (!preg_match("/^([\da-fA-F]+)[^\r\n]*\r\n/sm", $body, $m)) {
+                #require_once 'Zend/Http/Exception.php';
+            $body = sprintf("%x\r\n%s\r\n", strlen($body), $body);
+        }
+        if (!preg_match("/^([\da-fA-F]+)[^\r\n]*\r\n/sm", $body, $m)) {
+            throw new Zend_Http_Exception("Error parsing body - doesn't seem to be a chunked message");
+        }
+
+        $length = hexdec(trim($m[1]));
+        $cut = strlen($m[0]);
+        $decBody .= substr($body, $cut, $length);
+        $body = substr($body, $cut + $length + 2);
     }
+
+    if (isset($mbIntEnc)) {
+        mb_internal_encoding($mbIntEnc);
+    }
+
+    return $decBody;
+}
+
+public function directRefund($amount, Mage_Sales_Model_Order $order, Mage_Sales_Model_Order_Payment_Transaction $transaction) {
+    return $this->_callDirect(14, $amount, $order, $transaction);
+}
+
+public function getBillingEmail(Mage_Sales_Model_Order $order) {
+    return $order->getCustomerEmail();
+}
+
+public function getBillingName(Mage_Sales_Model_Order $order) {
+    return trim(preg_replace("/[^-. a-zA-Z0-9]/", " ", Mage::helper('core')->removeAccents($order->getCustomerName())));
+}
 
     /**
      * @return ETransactions_Epayment_Model_Config E-Transactions configuration object
@@ -545,9 +661,9 @@ class ETransactions_Epayment_Model_Etransactions {
         $currencyMapper = Mage::getSingleton('etep/iso4217Currency');
 
         $currencies = Mage::app()->getStore()->getAvailableCurrencyCodes();
-        if(count($currencies) > 1 && $this->getConfig()->getCurrencyConfig() == 0){
+        if (count($currencies) > 1 && $this->getConfig()->getCurrencyConfig() == 0) {
             $currency = $order->getOrderCurrencyCode();
-        }else{
+        } else {
             $currency = $order->getBaseCurrencyCode();
         }
         return $currencyMapper->getIsoCode($currency);
@@ -588,8 +704,8 @@ class ETransactions_Epayment_Model_Etransactions {
 
             // Check signature
             $signature = base64_decode(urldecode($matches[2]));
-            $pubkey = file_get_contents(Mage::getModuleDir('etc', 'ETransactions_Epayment').'/pubkey.pem');
-            $res = (boolean)openssl_verify($matches[1], $signature, $pubkey);
+            $pubkey = file_get_contents(Mage::getModuleDir('etc', 'ETransactions_Epayment') . '/pubkey.pem');
+            $res = (boolean) openssl_verify($matches[1], $signature, $pubkey);
 
             if (!$res) {
                 if (preg_match('#^C=IDEAL&P=PREPAYEE&(.*)&K=(.*)$#', $data, $matches)) {
@@ -599,7 +715,7 @@ class ETransactions_Epayment_Model_Etransactions {
 
                 if (!$res) {
                     $helper = Mage::helper('etep');
-                    Mage::throwException($helper->__('An unexpected error in E-Transactions call has occured: invalid signature.'));
+//                    Mage::throwException($helper->__('An unexpected error in E-Transactions call has occured: invalid signature.'));
                 }
             }
         }
@@ -631,9 +747,37 @@ class ETransactions_Epayment_Model_Etransactions {
         return $url;
     }
 
+    public function getResponsiveUrl() {
+        $config = $this->getConfig();
+        $urls = $config->getResponsiveUrls();
+        if (empty($urls)) {
+            $message = 'Missing URL for E-Transactions responsive in configuration';
+            throw new \LogicException(__($message));
+        }
+
+        $url = $this->checkUrls($urls);
+
+        return $url;
+    }
+
+
     public function getKwixoUrl() {
         $config = $this->getConfig();
         $urls = $config->getKwixoUrls();
+        if (empty($urls)) {
+            $message = 'Missing URL for E-Transactions system in configuration';
+            $helper = Mage::helper('etep');
+            Mage::throwException($helper->__($message));
+        }
+
+        $url = $this->checkUrls($urls);
+
+        return $url;
+    }
+
+    public function getAncvUrl() {
+        $config = $this->getConfig();
+        $urls = $config->getAncvUrls();
         if (empty($urls)) {
             $message = 'Missing URL for E-Transactions system in configuration';
             $helper = Mage::helper('etep');
@@ -670,10 +814,10 @@ class ETransactions_Epayment_Model_Etransactions {
             $query[] = $name . '=' . $value;
         }
         $query = implode('&', $query);
-        
+
         // Prepare key
         $key = pack('H*', $config->getHmacKey());
-        
+
         // Sign values
         $sign = hash_hmac($config->getHmacAlgo(), $query, $key);
         if ($sign === false) {
@@ -689,7 +833,7 @@ class ETransactions_Epayment_Model_Etransactions {
         if (isset($this->_errorCode[$code])) {
             return $this->_errorCode[$code];
         }
-        return 'Unknown error '.$code;
+        return 'Unknown error ' . $code;
     }
 
     public function tokenizeOrder(Mage_Sales_Model_Order $order) {
@@ -731,4 +875,5 @@ class ETransactions_Epayment_Model_Etransactions {
 
         return $order;
     }
+
 }
